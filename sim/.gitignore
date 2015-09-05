@@ -1,0 +1,4 @@
+# FEMM files
+*.fem
+*.FEM
+*.ans
