@@ -16,7 +16,7 @@ rot_nof_poles = 10;
 rot_nof_mag_per_pole = 2;
 stat_nof_slots = 15;
 
-rot_mag_thick = 3;
+rot_mag_thick = 2;
 rot_mag_width = 9;
 rot_inner_rad = 30.5;
 rot_outer_rad = 35;
@@ -70,6 +70,9 @@ openfemm;
 
 % Create a new magnetics problem
 newdocument(0);
+
+% Set up problem
+mi_probdef(0, 'millimeters', 'planar', 1e-8, '30', 0);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Draw motor
@@ -172,6 +175,37 @@ mi_zoomnatural();
 mi_drawarc(0, rot_outer_rad * 3, 0, -rot_outer_rad * 3, 180, 1);
 mi_drawarc(0, -rot_outer_rad * 3, 0, rot_outer_rad * 3, 180, 1);
 
+% Block labels
+% ------------
+% Air
+mi_addblocklabel(0, 0);
+mi_addblocklabel(0, 2 * rot_outer_rad);
+mi_addblocklabel(0, -stat_head_edge);
+% Stator iron
+mi_addblocklabel(0, (stat_inner_rad + stat_base_rad) / 2);
+mi_selectlabel(0, (stat_inner_rad + stat_base_rad) / 2);
+mi_setgroup(group_stator);
+% Rotor iron
+mi_addblocklabel(0, (rot_outer_rad + rot_ring_inner_rad) / 2);
+mi_selectlabel(0, (rot_outer_rad + rot_ring_inner_rad) / 2);
+mi_setgroup(group_rotor);
+% Magnets
+mi_addblocklabel(0, rot_inner_rad + (rot_mag_thick / 2));
+mi_selectlabel(0, rot_inner_rad + (rot_mag_thick / 2));
+mi_setgroup(group_rotor);
+mi_selectlabel(0, rot_inner_rad + (rot_mag_thick / 2));
+mi_copyrotate2(0, 0, 360 / rot_nof_poles / rot_nof_mag_per_pole, (rot_nof_poles * rot_nof_mag_per_pole) - 1, 2)
+for i = 0:(rot_nof_poles * rot_nof_mag_per_pole - 1)
+    mi_selectlabel((rot_inner_rad + (rot_mag_thick / 2)) * sin(i / (rot_nof_poles * rot_nof_mag_per_pole) * 2 * pi), -(rot_inner_rad + (rot_mag_thick / 2)) * cos(i / (rot_nof_poles * rot_nof_mag_per_pole) * 2 * pi));
+    if (mod(floor(i / rot_nof_mag_per_pole), 2))
+        dir = 90 + (360 / rot_nof_poles / rot_nof_mag_per_pole * i);
+    else
+        dir = 270 + (360 / rot_nof_poles / rot_nof_mag_per_pole * i);
+    endif
+    mi_setblockprop('mag', 1, 0, '<none>', dir, group_rotor, 0);
+    mi_clearselected();
+endfor
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Zoom view to current problem
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -183,7 +217,7 @@ mi_drawarc(0, -rot_outer_rad * 3, 0, rot_outer_rad * 3, 180, 1);
 for i = 1:(360/rot_nof_poles)
 %for i = 1:3600
     mi_selectgroup(group_rotor);
-    mi_moverotate(0, 0, 1);
+    %mi_moverotate(0, 0, 1);
     %sleep(0.1);
 endfor
 
