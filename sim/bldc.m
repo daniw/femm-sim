@@ -34,6 +34,9 @@ stat_slot_shape =  [0.      0.      ;
                     0.95    0.9     ;
                     1.      1.      ];
 
+group_stator = 1;
+group_rotor = 2;
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Calculate needed variables
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -56,6 +59,9 @@ rot_mag_shape = [ rot_mag_width / 2     rot_inner_rad;
                  -rot_mag_width / 2     rot_inner_rad];
 % inner radius of rotor ring
 rot_ring_inner_rad = sqrt((rot_inner_rad + rot_mag_thick)^2 + (rot_mag_width / 2)^2);
+% position of next slot
+stat_base_n_x = stat_base_rad * sin((stat_slot_edge_angle + 2 * stat_slot_base_angle) / 180 * pi);
+stat_base_n_y = stat_base_rad * cos((stat_slot_edge_angle + 2 * stat_slot_base_angle) / 180 * pi);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Open FEMM
@@ -76,12 +82,30 @@ mi_drawarc(0, rot_outer_rad, 0, -rot_outer_rad, 180, 1);
 mi_drawarc(0, -rot_outer_rad, 0, rot_outer_rad, 180, 1);
 mi_drawarc(0, rot_ring_inner_rad, 0, -rot_ring_inner_rad, 180, 1);
 mi_drawarc(0, -rot_ring_inner_rad, 0, rot_ring_inner_rad, 180, 1);
+mi_selectnode(0, rot_outer_rad);
+mi_selectnode(0, -rot_outer_rad);
+mi_selectnode(0, rot_ring_inner_rad);
+mi_selectnode(0, -rot_ring_inner_rad);
+mi_selectarcsegment(rot_outer_rad, 0);
+mi_selectarcsegment(-rot_outer_rad, 0);
+mi_selectarcsegment(rot_ring_inner_rad, 0);
+mi_selectarcsegment(-rot_ring_inner_rad, 0);
+mi_setgroup(group_rotor);
 % magnets
 mi_drawpolygon(rot_mag_shape);
 for i = 1:length(rot_mag_shape)
     mi_selectnode(rot_mag_shape(i,:));
 endfor
+mi_setgroup(group_rotor);
+for i = 1:length(rot_mag_shape)
+    mi_selectnode(rot_mag_shape(i,:));
+endfor
 mi_copyrotate2(0, 0, 360 / rot_nof_poles / rot_nof_mag_per_pole, rot_nof_poles * rot_nof_mag_per_pole - 1, 0);
+for i = 1:length(rot_mag_shape) - 1
+    mi_selectsegment((rot_mag_shape(i,:) + rot_mag_shape(i+1,:)) / 2);
+endfor
+mi_selectsegment((rot_mag_shape(1,:) + rot_mag_shape(length(rot_mag_shape),:)) / 2);
+mi_setgroup(group_rotor);
 for i = 1:length(rot_mag_shape) - 1
     mi_selectsegment((rot_mag_shape(i,:) + rot_mag_shape(i+1,:)) / 2);
 endfor
@@ -103,10 +127,20 @@ mi_deleteselected();
 % inner circle
 mi_drawarc(0, stat_inner_rad, 0, -stat_inner_rad, 180, 1);
 mi_drawarc(0, -stat_inner_rad, 0, stat_inner_rad, 180, 1);
+mi_selectnode(0, stat_inner_rad);
+mi_selectnode(0, -stat_inner_rad);
+mi_selectarcsegment(stat_inner_rad, 0);
+mi_selectarcsegment(-stat_inner_rad, 0);
+mi_setgroup(group_stator);
 % slots
 mi_drawpolyline(stat_slot_shape_r);
 mi_drawpolyline(stat_slot_shape_l);
 mi_addarc(stat_head_width/2, stat_head_edge, -stat_head_width/2, stat_head_edge, stat_head_angle*2, 1);
+for i = 1:length(stat_slot_shape)
+    mi_selectnode(stat_slot_shape_r(i,:));
+    mi_selectnode(stat_slot_shape_l(i,:));
+endfor
+mi_setgroup(group_stator);
 for i = 1:length(stat_slot_shape)
     mi_selectnode(stat_slot_shape_r(i,:));
     mi_selectnode(stat_slot_shape_l(i,:));
@@ -116,13 +150,20 @@ for i = 1:length(stat_slot_shape) - 1
     mi_selectsegment((stat_slot_shape_r(i,:) + stat_slot_shape_r(i+1,:)) / 2);
     mi_selectsegment((stat_slot_shape_l(i,:) + stat_slot_shape_l(i+1,:)) / 2);
 endfor
+mi_setgroup(group_stator);
+for i = 1:length(stat_slot_shape) - 1
+    mi_selectsegment((stat_slot_shape_r(i,:) + stat_slot_shape_r(i+1,:)) / 2);
+    mi_selectsegment((stat_slot_shape_l(i,:) + stat_slot_shape_l(i+1,:)) / 2);
+endfor
 mi_copyrotate2(0, 0, 360 / stat_nof_slots, stat_nof_slots - 1, 1);
 mi_selectarcsegment(0, stat_out_rad);
+mi_setgroup(group_stator);
+mi_selectarcsegment(0, stat_out_rad);
 mi_copyrotate2(0, 0, 360 / stat_nof_slots, stat_nof_slots - 1, 3);
-x2 = 6.3
-y2 = 19.07
-mi_addarc(x2, y2, stat_slot_shape_r(1,1), stat_slot_shape_r(1,2), stat_slot_base_angle * 2, 1);
-mi_selectarcsegment((x2 + stat_slot_shape_r(1,1)) / 2, (y2 + stat_slot_shape_r(1,2)) / 2);
+mi_addarc(stat_base_n_x, stat_base_n_y, stat_slot_shape_r(1,1), stat_slot_shape_r(1,2), stat_slot_base_angle * 2, 1);
+mi_selectarcsegment((stat_base_n_x + stat_slot_shape_r(1,1)) / 2, (stat_base_n_y + stat_slot_shape_r(1,2)) / 2);
+mi_setgroup(group_stator);
+mi_selectarcsegment((stat_base_n_x + stat_slot_shape_r(1,1)) / 2, (stat_base_n_y + stat_slot_shape_r(1,2)) / 2);
 mi_copyrotate2(0, 0, 360 / stat_nof_slots, stat_nof_slots - 1, 3);
 
 % Boundary around motor
@@ -135,6 +176,16 @@ mi_drawarc(0, -rot_outer_rad * 3, 0, rot_outer_rad * 3, 180, 1);
 % Zoom view to current problem
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %mi_zoomnatural();
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Rotate rotor
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+for i = 1:(360/rot_nof_poles)
+%for i = 1:3600
+    mi_selectgroup(group_rotor);
+    mi_moverotate(0, 0, 1);
+    %sleep(0.1);
+endfor
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % close FEMM

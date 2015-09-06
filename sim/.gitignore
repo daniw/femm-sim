@@ -2,3 +2,6 @@
 *.fem
 *.FEM
 *.ans
+
+# temporary vim files
+*.swp
