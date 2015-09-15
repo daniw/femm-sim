@@ -15,6 +15,7 @@ close all;
 rot_nof_poles = 10;
 rot_nof_mag_per_pole = 2;
 stat_nof_slots = 15;
+mot_thickness = 10;
 
 rot_mag_thick = 2;
 rot_mag_width = 9;
@@ -42,16 +43,28 @@ group_rotor = 2;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % stator edge
 stat_head_edge = sqrt((stat_out_rad)^2 - (stat_head_width/2)^2);
+% stator base edge
+stat_base_edge = stat_base_rad * cos(asin(stat_slot_width / 2 / stat_base_rad));
 % scale stator slot
 stat_slot_shape_r(:,1) = (stat_slot_shape(:,1) .* (stat_head_width - stat_slot_width) .+ stat_slot_width) ./ 2;
-stat_slot_shape_r(:,2) = stat_slot_shape(:,2) .* (stat_head_edge - stat_base_rad) .+ stat_base_rad;
+stat_slot_shape_r(:,2) = stat_slot_shape(:,2) .* (stat_head_edge - stat_base_edge) .+ stat_base_edge;
 stat_slot_shape_l(:,1) = -stat_slot_shape_r(:,1);
 stat_slot_shape_l(:,2) = stat_slot_shape_r(:,2);
 % stator head angle
 stat_head_angle = asin(stat_head_width/2 / stat_out_rad) * 180 / pi;
 % stator base angle
-stat_slot_edge_angle = atan(stat_slot_shape_r(1,1) / stat_slot_shape_r(1,2)) *180 / pi
-stat_slot_base_angle = 360 / stat_nof_slots / 2 - stat_slot_edge_angle
+stat_slot_edge_angle = atan(stat_slot_shape_r(1,1) / stat_slot_shape_r(1,2)) *180 / pi;
+stat_slot_base_angle = 360 / stat_nof_slots / 2 - stat_slot_edge_angle;
+% Stator winding radius
+stat_wind_rad = sqrt(stat_slot_shape_r(length(stat_slot_shape) - 1, 1) ^ 2 + stat_slot_shape_r(length(stat_slot_shape) - 1, 2) ^ 2);
+% Stator winding angle
+stat_wind_angle = atan(stat_slot_shape_r(length(stat_slot_shape) - 1, 1) / stat_slot_shape_r(length(stat_slot_shape) - 1, 2)) * 180 / pi;
+% Stator winding contour
+stat_wind_cont = [stat_wind_rad * sin(stat_wind_angle * pi / 180) stat_wind_rad * cos(stat_wind_angle * pi / 180)
+                  stat_wind_rad * sin(pi / stat_nof_slots) stat_wind_rad * cos(pi / stat_nof_slots)
+                  stat_base_rad * sin(pi / stat_nof_slots) stat_base_rad * cos(pi / stat_nof_slots)
+                  stat_wind_rad * sin(pi / stat_nof_slots) stat_wind_rad * cos(pi / stat_nof_slots)
+                  stat_wind_rad * sin(2 * pi / stat_nof_slots - stat_wind_angle * pi / 180) stat_wind_rad * cos(2 * pi / stat_nof_slots - stat_wind_angle * pi / 180)];
 % magnet shape
 rot_mag_shape = [ rot_mag_width / 2     rot_inner_rad;
                   rot_mag_width / 2     rot_inner_rad + rot_mag_thick;
@@ -72,7 +85,7 @@ openfemm;
 newdocument(0);
 
 % Set up problem
-mi_probdef(0, 'millimeters', 'planar', 1e-8, '30', 0);
+mi_probdef(0, 'millimeters', 'planar', 1e-8, mot_thickness, '30', 0);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Draw motor
@@ -168,6 +181,22 @@ mi_selectarcsegment((stat_base_n_x + stat_slot_shape_r(1,1)) / 2, (stat_base_n_y
 mi_setgroup(group_stator);
 mi_selectarcsegment((stat_base_n_x + stat_slot_shape_r(1,1)) / 2, (stat_base_n_y + stat_slot_shape_r(1,2)) / 2);
 mi_copyrotate2(0, 0, 360 / stat_nof_slots, stat_nof_slots - 1, 3);
+% Windings
+mi_drawpolyline(stat_wind_cont);
+mi_selectnode(stat_wind_cont(2,:));
+mi_selectnode(stat_wind_cont(3,:));
+mi_setgroup(group_stator);
+mi_selectnode(stat_wind_cont(2,:));
+mi_selectnode(stat_wind_cont(3,:));
+mi_copyrotate2(0, 0, 360 / stat_nof_slots, stat_nof_slots - 1, 0);
+for i = [1 2 4]
+    mi_selectsegment((stat_wind_cont(i,:) + stat_wind_cont(i+1,:)) / 2);
+endfor
+mi_setgroup(group_stator);
+for i = [1 2 4]
+    mi_selectsegment((stat_wind_cont(i,:) + stat_wind_cont(i+1,:)) / 2);
+endfor
+mi_copyrotate2(0, 0, 360 / stat_nof_slots, stat_nof_slots - 1, 1);
 
 % Boundary around motor
 % ---------------------
