@@ -234,6 +234,18 @@ for i = 0:(rot_nof_poles * rot_nof_mag_per_pole - 1)
     mi_setblockprop('mag', 1, 0, '<none>', dir, group_rotor, 0);
     mi_clearselected();
 endfor
+% Windings
+for i = 0:stat_nof_slots-1
+    mi_addblocklabel([ (stat_base_rad + stat_wind_rad) / 2 * sin(2 * pi / stat_nof_slots * i + (180 / stat_nof_slots + stat_wind_angle) / 2 * pi / 180)
+                       (stat_base_rad + stat_wind_rad) / 2 * cos(2 * pi / stat_nof_slots * i + (180 / stat_nof_slots + stat_wind_angle) / 2 * pi / 180)]);
+    mi_addblocklabel([-(stat_base_rad + stat_wind_rad) / 2 * sin(2 * pi / stat_nof_slots * i + (180 / stat_nof_slots + stat_wind_angle) / 2 * pi / 180)
+                       (stat_base_rad + stat_wind_rad) / 2 * cos(2 * pi / stat_nof_slots * i + (180 / stat_nof_slots + stat_wind_angle) / 2 * pi / 180)]);
+    mi_selectlabel([ (stat_base_rad + stat_wind_rad) / 2 * sin(2 * pi / stat_nof_slots * i + (180 / stat_nof_slots + stat_wind_angle) / 2 * pi / 180)
+                     (stat_base_rad + stat_wind_rad) / 2 * cos(2 * pi / stat_nof_slots * i + (180 / stat_nof_slots + stat_wind_angle) / 2 * pi / 180)]);
+    mi_selectlabel([-(stat_base_rad + stat_wind_rad) / 2 * sin(2 * pi / stat_nof_slots * i + (180 / stat_nof_slots + stat_wind_angle) / 2 * pi / 180)
+                     (stat_base_rad + stat_wind_rad) / 2 * cos(2 * pi / stat_nof_slots * i + (180 / stat_nof_slots + stat_wind_angle) / 2 * pi / 180)]);
+    mi_setgroup(group_stator);
+endfor
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Zoom view to current problem
