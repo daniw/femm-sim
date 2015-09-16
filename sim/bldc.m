@@ -16,6 +16,7 @@ rot_nof_poles = 10;
 rot_nof_mag_per_pole = 2;
 stat_nof_slots = 15;
 mot_thickness = 10;
+stat_nof_wdg = 50;
 
 rot_mag_thick = 2;
 rot_mag_width = 9;
@@ -105,6 +106,16 @@ if mat_rot != mat_stat
     mi_getmaterial(mat_rot);
 endif
 mi_getmaterial(mat_wind);
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Circuits
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+mi_addcircprop('L1+', 0, 1);
+mi_addcircprop('L1-', 0, 1);
+mi_addcircprop('L2+', 0, 1);
+mi_addcircprop('L2-', 0, 1);
+mi_addcircprop('L3+', 0, 1);
+mi_addcircprop('L3-', 0, 1);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Draw motor
@@ -265,20 +276,42 @@ for i = 0:(rot_nof_poles * rot_nof_mag_per_pole - 1)
 endfor
 % Windings
 for i = 0:stat_nof_slots-1
-    mi_addblocklabel([ (stat_base_rad + stat_wind_rad) / 2 * sin(2 * pi / stat_nof_slots * i + (180 / stat_nof_slots + stat_wind_angle) / 2 * pi / 180)
-                       (stat_base_rad + stat_wind_rad) / 2 * cos(2 * pi / stat_nof_slots * i + (180 / stat_nof_slots + stat_wind_angle) / 2 * pi / 180)]);
-    mi_addblocklabel([-(stat_base_rad + stat_wind_rad) / 2 * sin(2 * pi / stat_nof_slots * i + (180 / stat_nof_slots + stat_wind_angle) / 2 * pi / 180)
-                       (stat_base_rad + stat_wind_rad) / 2 * cos(2 * pi / stat_nof_slots * i + (180 / stat_nof_slots + stat_wind_angle) / 2 * pi / 180)]);
-    mi_selectlabel([ (stat_base_rad + stat_wind_rad) / 2 * sin(2 * pi / stat_nof_slots * i + (180 / stat_nof_slots + stat_wind_angle) / 2 * pi / 180)
-                     (stat_base_rad + stat_wind_rad) / 2 * cos(2 * pi / stat_nof_slots * i + (180 / stat_nof_slots + stat_wind_angle) / 2 * pi / 180)]);
-    mi_selectlabel([-(stat_base_rad + stat_wind_rad) / 2 * sin(2 * pi / stat_nof_slots * i + (180 / stat_nof_slots + stat_wind_angle) / 2 * pi / 180)
-                     (stat_base_rad + stat_wind_rad) / 2 * cos(2 * pi / stat_nof_slots * i + (180 / stat_nof_slots + stat_wind_angle) / 2 * pi / 180)]);
+    wind_angle_p = 2 * pi / stat_nof_slots * i + (180 / stat_nof_slots + stat_wind_angle) / 2 * pi / 180;
+    wind_angle_n = 2 * pi / stat_nof_slots * i - (180 / stat_nof_slots + stat_wind_angle) / 2 * pi / 180;
+    mi_addblocklabel([(stat_base_rad + stat_wind_rad) / 2 * sin(wind_angle_p)
+                      (stat_base_rad + stat_wind_rad) / 2 * cos(wind_angle_p)]);
+    mi_addblocklabel([(stat_base_rad + stat_wind_rad) / 2 * sin(wind_angle_n)
+                      (stat_base_rad + stat_wind_rad) / 2 * cos(wind_angle_n)]);
+    mi_selectlabel([(stat_base_rad + stat_wind_rad) / 2 * sin(wind_angle_p)
+                    (stat_base_rad + stat_wind_rad) / 2 * cos(wind_angle_p)]);
+    mi_selectlabel([(stat_base_rad + stat_wind_rad) / 2 * sin(wind_angle_n)
+                    (stat_base_rad + stat_wind_rad) / 2 * cos(wind_angle_n)]);
     mi_setgroup(group_stator);
-    mi_selectlabel([ (stat_base_rad + stat_wind_rad) / 2 * sin(2 * pi / stat_nof_slots * i + (180 / stat_nof_slots + stat_wind_angle) / 2 * pi / 180)
-                     (stat_base_rad + stat_wind_rad) / 2 * cos(2 * pi / stat_nof_slots * i + (180 / stat_nof_slots + stat_wind_angle) / 2 * pi / 180)]);
-    mi_selectlabel([-(stat_base_rad + stat_wind_rad) / 2 * sin(2 * pi / stat_nof_slots * i + (180 / stat_nof_slots + stat_wind_angle) / 2 * pi / 180)
-                     (stat_base_rad + stat_wind_rad) / 2 * cos(2 * pi / stat_nof_slots * i + (180 / stat_nof_slots + stat_wind_angle) / 2 * pi / 180)]);
-    mi_setblockprop(mat_wind, 1, 0, '<none>', 0, 0, 0)
+    if mod(i, 3) == 0
+        mi_selectlabel([(stat_base_rad + stat_wind_rad) / 2 * sin(wind_angle_p)
+                        (stat_base_rad + stat_wind_rad) / 2 * cos(wind_angle_p)]);
+        mi_setblockprop(mat_wind, 1, 0, 'L1+', 0, 0, stat_nof_wdg)
+        mi_clearselected();
+        mi_selectlabel([(stat_base_rad + stat_wind_rad) / 2 * sin(wind_angle_n)
+                        (stat_base_rad + stat_wind_rad) / 2 * cos(wind_angle_n)]);
+        mi_setblockprop(mat_wind, 1, 0, 'L1-', 0, 0, stat_nof_wdg)
+    elseif mod(i, 3) == 1
+        mi_selectlabel([(stat_base_rad + stat_wind_rad) / 2 * sin(wind_angle_p)
+                        (stat_base_rad + stat_wind_rad) / 2 * cos(wind_angle_p)]);
+        mi_setblockprop(mat_wind, 1, 0, 'L2+', 0, 0, stat_nof_wdg)
+        mi_clearselected();
+        mi_selectlabel([(stat_base_rad + stat_wind_rad) / 2 * sin(wind_angle_n)
+                        (stat_base_rad + stat_wind_rad) / 2 * cos(wind_angle_n)]);
+        mi_setblockprop(mat_wind, 1, 0, 'L2-', 0, 0, stat_nof_wdg)
+    elseif mod(i, 3) == 2
+        mi_selectlabel([(stat_base_rad + stat_wind_rad) / 2 * sin(wind_angle_p)
+                        (stat_base_rad + stat_wind_rad) / 2 * cos(wind_angle_p)]);
+        mi_setblockprop(mat_wind, 1, 0, 'L3+', 0, 0, stat_nof_wdg)
+        mi_clearselected();
+        mi_selectlabel([(stat_base_rad + stat_wind_rad) / 2 * sin(wind_angle_n)
+                        (stat_base_rad + stat_wind_rad) / 2 * cos(wind_angle_n)]);
+        mi_setblockprop(mat_wind, 1, 0, 'L3-', 0, 0, stat_nof_wdg)
+    endif
 endfor
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
