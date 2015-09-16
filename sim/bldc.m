@@ -27,7 +27,7 @@ stat_base_rad = 20;
 stat_inner_rad = 16;
 
 stat_slot_width = 4;
-stat_head_width = 8;
+stat_head_width = 10;
 %                   Width   Radius
 stat_slot_shape =  [0.      0.      ;
                     0.      0.88    ;
