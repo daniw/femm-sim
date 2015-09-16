@@ -35,6 +35,12 @@ stat_slot_shape =  [0.      0.      ;
                     0.95    0.9     ;
                     1.      1.      ];
 
+mat_air     = 'Air';
+mat_stat    = 'Vanadium Permedur';
+mat_rot     = 'Vanadium Permedur';
+mat_magnet  = 'NdFeB 52 MGOe';
+mat_wind    = '1mm';
+
 group_stator = 1;
 group_rotor = 2;
 
@@ -86,6 +92,19 @@ newdocument(0);
 
 % Set up problem
 mi_probdef(0, 'millimeters', 'planar', 1e-8, mot_thickness, '30', 0);
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Materials
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Materials from Library
+% ----------------------
+mi_getmaterial(mat_air);
+mi_getmaterial(mat_magnet);
+mi_getmaterial(mat_stat);
+if mat_rot != mat_stat
+    mi_getmaterial(mat_rot);
+endif
+mi_getmaterial(mat_wind);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Draw motor
@@ -208,16 +227,26 @@ mi_drawarc(0, -rot_outer_rad * 3, 0, rot_outer_rad * 3, 180, 1);
 % ------------
 % Air
 mi_addblocklabel(0, 0);
+mi_selectlabel(0, 0);
+mi_setblockprop(mat_air, 1, 0, '<none>', 0, 0, 0)
 mi_addblocklabel(0, 2 * rot_outer_rad);
+mi_selectlabel(0, 2 * rot_outer_rad);
+mi_setblockprop(mat_air, 1, 0, '<none>', 0, 0, 0)
 mi_addblocklabel(0, -stat_head_edge);
+mi_selectlabel(0, -stat_head_edge);
+mi_setblockprop(mat_air, 1, 0, '<none>', 0, 0, 0)
 % Stator iron
 mi_addblocklabel(0, (stat_inner_rad + stat_base_rad) / 2);
 mi_selectlabel(0, (stat_inner_rad + stat_base_rad) / 2);
 mi_setgroup(group_stator);
+mi_selectlabel(0, (stat_inner_rad + stat_base_rad) / 2);
+mi_setblockprop(mat_stat, 1, 0, '<none>', 0, 0, 0)
 % Rotor iron
 mi_addblocklabel(0, (rot_outer_rad + rot_ring_inner_rad) / 2);
 mi_selectlabel(0, (rot_outer_rad + rot_ring_inner_rad) / 2);
 mi_setgroup(group_rotor);
+mi_selectlabel(0, (rot_outer_rad + rot_ring_inner_rad) / 2);
+mi_setblockprop(mat_rot, 1, 0, '<none>', 0, 0, 0)
 % Magnets
 mi_addblocklabel(0, rot_inner_rad + (rot_mag_thick / 2));
 mi_selectlabel(0, rot_inner_rad + (rot_mag_thick / 2));
@@ -231,7 +260,7 @@ for i = 0:(rot_nof_poles * rot_nof_mag_per_pole - 1)
     else
         dir = 270 + (360 / rot_nof_poles / rot_nof_mag_per_pole * i);
     endif
-    mi_setblockprop('mag', 1, 0, '<none>', dir, group_rotor, 0);
+    mi_setblockprop(mat_magnet, 1, 0, '<none>', dir, group_rotor, 0);
     mi_clearselected();
 endfor
 % Windings
@@ -245,6 +274,11 @@ for i = 0:stat_nof_slots-1
     mi_selectlabel([-(stat_base_rad + stat_wind_rad) / 2 * sin(2 * pi / stat_nof_slots * i + (180 / stat_nof_slots + stat_wind_angle) / 2 * pi / 180)
                      (stat_base_rad + stat_wind_rad) / 2 * cos(2 * pi / stat_nof_slots * i + (180 / stat_nof_slots + stat_wind_angle) / 2 * pi / 180)]);
     mi_setgroup(group_stator);
+    mi_selectlabel([ (stat_base_rad + stat_wind_rad) / 2 * sin(2 * pi / stat_nof_slots * i + (180 / stat_nof_slots + stat_wind_angle) / 2 * pi / 180)
+                     (stat_base_rad + stat_wind_rad) / 2 * cos(2 * pi / stat_nof_slots * i + (180 / stat_nof_slots + stat_wind_angle) / 2 * pi / 180)]);
+    mi_selectlabel([-(stat_base_rad + stat_wind_rad) / 2 * sin(2 * pi / stat_nof_slots * i + (180 / stat_nof_slots + stat_wind_angle) / 2 * pi / 180)
+                     (stat_base_rad + stat_wind_rad) / 2 * cos(2 * pi / stat_nof_slots * i + (180 / stat_nof_slots + stat_wind_angle) / 2 * pi / 180)]);
+    mi_setblockprop(mat_wind, 1, 0, '<none>', 0, 0, 0)
 endfor
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
