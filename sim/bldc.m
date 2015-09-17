@@ -42,6 +42,13 @@ mat_rot     = 'Vanadium Permedur';
 mat_magnet  = 'NdFeB 52 MGOe';
 mat_wind    = '1mm';
 
+current = 5;
+
+% Resolution for simulation iterations
+res_rot = 1;
+res_el  = 10;
+
+% Groups for stator and rotor
 group_stator = 1;
 group_rotor = 2;
 
@@ -322,12 +329,33 @@ endfor
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Rotate rotor
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-for i = 1:(360/rot_nof_poles)
-%for i = 1:3600
+for i = 1:(360 * 3 / stat_nof_slots)
     mi_selectgroup(group_rotor);
     %mi_moverotate(0, 0, 1);
     %sleep(0.1);
 endfor
+for phi = res_el:res_el:(360)
+    il1 = current * sin((phi      ) * pi / 180);
+    il2 = current * sin((phi + 120) * pi / 180);
+    il3 = current * sin((phi - 120) * pi / 180);
+    is(phi / res_el, 1) = il1;
+    is(phi / res_el, 2) = il2;
+    is(phi / res_el, 3) = il3;
+    is(phi / res_el, 4) = phi;
+    mi_setcurrent('L1+',  il1);
+    mi_setcurrent('L1-', -il1);
+    mi_setcurrent('L2+',  il2);
+    mi_setcurrent('L2-', -il2);
+    mi_setcurrent('L3+',  il3);
+    mi_setcurrent('L3-', -il3);
+    %sleep(0.1);
+endfor
+%figure(1);
+%plot(is(:,1:3));
+%title('Sine current in windings L_1, L_2, L_3');
+%xlabel('\phi [^\circ]');
+%ylabel('I_{L_x} [A]');
+%legend('I_{L_1}', 'I_{L_2}', 'I_{L_3}');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % close FEMM
