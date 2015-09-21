@@ -59,8 +59,8 @@ current = 5;
 
 % Resolution for simulation iterations
 res_clogg = 1;
-res_rot = 5;
-res_el  = 20;
+res_rot = 2;
+res_el  = 10;
 
 % Groups for stator and rotor
 group_stator = 1;
@@ -377,13 +377,13 @@ endfor
 mi_selectgroup(group_rotor);
 mi_moverotate(0, 0, -(360 * 3 / stat_nof_slots));
 if simulate == 1
-    save('clogging_torque.mat', 'torque');
+    save('bldc_clogging_torque.mat', 'torque');
     figure(1);
     plot(torque);
     title('Cogging torque');
     xlabel('rotation [^\circ]');
     ylabel('cogging torque [Nm]');
-    print -dpdf 'clogging_torque';
+    print -dpdf 'bldc_clogging_torque';
     close all;
 endif
 
@@ -439,14 +439,14 @@ endfor
 mi_selectgroup(group_rotor);
 mi_moverotate(0, 0, -(360 * 3 / stat_nof_slots));
 if simulate == 1
-    save('torque.mat', 'torque');
+    save('bldc_torque.mat', 'torque');
     figure(1);
-    plot3(torque);
+    mesh(torque);
     title('Torque');
     xlabel('rotation [^\circ]');
     ylabel('phase angle [^\circ]');
     zlabel('torque [Nm]');
-    print -dpdf 'clogging_torque'
+    print -dpdf 'bldc_torque'
     close all;
 endif
 loops
