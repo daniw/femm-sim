@@ -10,6 +10,19 @@ clc;
 close all;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Setting up plots
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+graphics_toolkit('gnuplot');
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Switch to either control simulation
+% 0 -> Test sequence only
+% 1 -> Perform actual simulations
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+simulate = 1;
+debug = 0;
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Constants for defining motor dimensions
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 rot_nof_poles = 10;
@@ -45,12 +58,14 @@ mat_wind    = '1mm';
 current = 5;
 
 % Resolution for simulation iterations
-res_rot = 1;
-res_el  = 10;
+res_clogg = 1;
+res_rot = 5;
+res_el  = 20;
 
 % Groups for stator and rotor
 group_stator = 1;
 group_rotor = 2;
+group_air = 3;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Calculate needed variables
@@ -246,25 +261,28 @@ mi_drawarc(0, -rot_outer_rad * 3, 0, rot_outer_rad * 3, 180, 1);
 % Air
 mi_addblocklabel(0, 0);
 mi_selectlabel(0, 0);
-mi_setblockprop(mat_air, 1, 0, '<none>', 0, 0, 0)
+mi_setblockprop(mat_air, 1, 0, '<none>', 0, group_air, 0)
 mi_addblocklabel(0, 2 * rot_outer_rad);
 mi_selectlabel(0, 2 * rot_outer_rad);
-mi_setblockprop(mat_air, 1, 0, '<none>', 0, 0, 0)
+mi_setblockprop(mat_air, 1, 0, '<none>', 0, group_air, 0)
 mi_addblocklabel(0, -stat_head_edge);
 mi_selectlabel(0, -stat_head_edge);
-mi_setblockprop(mat_air, 1, 0, '<none>', 0, 0, 0)
+mi_setblockprop(mat_air, 1, 0, '<none>', 0, group_air, 0)
+mi_clearselected();
 % Stator iron
 mi_addblocklabel(0, (stat_inner_rad + stat_base_rad) / 2);
 mi_selectlabel(0, (stat_inner_rad + stat_base_rad) / 2);
 mi_setgroup(group_stator);
 mi_selectlabel(0, (stat_inner_rad + stat_base_rad) / 2);
-mi_setblockprop(mat_stat, 1, 0, '<none>', 0, 0, 0)
+mi_setblockprop(mat_stat, 1, 0, '<none>', 0, group_stator, 0)
+mi_clearselected();
 % Rotor iron
 mi_addblocklabel(0, (rot_outer_rad + rot_ring_inner_rad) / 2);
 mi_selectlabel(0, (rot_outer_rad + rot_ring_inner_rad) / 2);
 mi_setgroup(group_rotor);
 mi_selectlabel(0, (rot_outer_rad + rot_ring_inner_rad) / 2);
-mi_setblockprop(mat_rot, 1, 0, '<none>', 0, 0, 0)
+mi_setblockprop(mat_rot, 1, 0, '<none>', 0, group_rotor, 0)
+mi_clearselected();
 % Magnets
 mi_addblocklabel(0, rot_inner_rad + (rot_mag_thick / 2));
 mi_selectlabel(0, rot_inner_rad + (rot_mag_thick / 2));
@@ -297,29 +315,33 @@ for i = 0:stat_nof_slots-1
     if mod(i, 3) == 0
         mi_selectlabel([(stat_base_rad + stat_wind_rad) / 2 * sin(wind_angle_p)
                         (stat_base_rad + stat_wind_rad) / 2 * cos(wind_angle_p)]);
-        mi_setblockprop(mat_wind, 1, 0, 'L1+', 0, 0, stat_nof_wdg)
+        mi_setblockprop(mat_wind, 1, 0, 'L1+', 0, group_stator, stat_nof_wdg)
         mi_clearselected();
         mi_selectlabel([(stat_base_rad + stat_wind_rad) / 2 * sin(wind_angle_n)
                         (stat_base_rad + stat_wind_rad) / 2 * cos(wind_angle_n)]);
-        mi_setblockprop(mat_wind, 1, 0, 'L1-', 0, 0, stat_nof_wdg)
+        mi_setblockprop(mat_wind, 1, 0, 'L1-', 0, group_stator, stat_nof_wdg)
+        mi_clearselected();
     elseif mod(i, 3) == 1
         mi_selectlabel([(stat_base_rad + stat_wind_rad) / 2 * sin(wind_angle_p)
                         (stat_base_rad + stat_wind_rad) / 2 * cos(wind_angle_p)]);
-        mi_setblockprop(mat_wind, 1, 0, 'L2+', 0, 0, stat_nof_wdg)
+        mi_setblockprop(mat_wind, 1, 0, 'L2+', 0, group_stator, stat_nof_wdg)
         mi_clearselected();
         mi_selectlabel([(stat_base_rad + stat_wind_rad) / 2 * sin(wind_angle_n)
                         (stat_base_rad + stat_wind_rad) / 2 * cos(wind_angle_n)]);
-        mi_setblockprop(mat_wind, 1, 0, 'L2-', 0, 0, stat_nof_wdg)
+        mi_setblockprop(mat_wind, 1, 0, 'L2-', 0, group_stator, stat_nof_wdg)
+        mi_clearselected();
     elseif mod(i, 3) == 2
         mi_selectlabel([(stat_base_rad + stat_wind_rad) / 2 * sin(wind_angle_p)
                         (stat_base_rad + stat_wind_rad) / 2 * cos(wind_angle_p)]);
-        mi_setblockprop(mat_wind, 1, 0, 'L3+', 0, 0, stat_nof_wdg)
+        mi_setblockprop(mat_wind, 1, 0, 'L3+', 0, group_stator, stat_nof_wdg)
         mi_clearselected();
         mi_selectlabel([(stat_base_rad + stat_wind_rad) / 2 * sin(wind_angle_n)
                         (stat_base_rad + stat_wind_rad) / 2 * cos(wind_angle_n)]);
-        mi_setblockprop(mat_wind, 1, 0, 'L3-', 0, 0, stat_nof_wdg)
+        mi_setblockprop(mat_wind, 1, 0, 'L3-', 0, group_stator, stat_nof_wdg)
+        mi_clearselected();
     endif
 endfor
+mi_clearselected();
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Zoom view to current problem
@@ -329,33 +351,106 @@ endfor
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Rotate rotor
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-for i = 1:(360 * 3 / stat_nof_slots)
+mi_clearselected();
+loops = 0;
+for i = res_clogg:res_clogg:(360 * 3 / stat_nof_slots)
+%for i = 1
+    name = strcat('bldc_r', num2str(i - res_clogg), '_clogg');
+    mi_saveas(strcat(name, '.fem'));
+    if simulate == 1
+        mi_createmesh();
+        mi_analyze(1);
+        mi_loadsolution();
+        mo_zoom(-rot_outer_rad, -rot_outer_rad, rot_outer_rad, rot_outer_rad);
+        mo_showdensityplot(1, 0, 3, 0, 'mag');
+        mo_savebitmap(strcat(name, '.bmp'));
+        mo_seteditmode('area');
+        mo_clearblock();
+        mo_groupselectblock(group_stator);
+        torque(i / res_clogg) = mo_blockintegral(22);
+        mo_close();
+    endif
+    loops += 1;
     mi_selectgroup(group_rotor);
-    %mi_moverotate(0, 0, 1);
-    %sleep(0.1);
+    mi_moverotate(0, 0, res_clogg);
 endfor
-for phi = res_el:res_el:(360)
-    il1 = current * sin((phi      ) * pi / 180);
-    il2 = current * sin((phi + 120) * pi / 180);
-    il3 = current * sin((phi - 120) * pi / 180);
-    is(phi / res_el, 1) = il1;
-    is(phi / res_el, 2) = il2;
-    is(phi / res_el, 3) = il3;
-    is(phi / res_el, 4) = phi;
-    mi_setcurrent('L1+',  il1);
-    mi_setcurrent('L1-', -il1);
-    mi_setcurrent('L2+',  il2);
-    mi_setcurrent('L2-', -il2);
-    mi_setcurrent('L3+',  il3);
-    mi_setcurrent('L3-', -il3);
-    %sleep(0.1);
+mi_selectgroup(group_rotor);
+mi_moverotate(0, 0, -(360 * 3 / stat_nof_slots));
+if simulate == 1
+    save('clogging_torque.mat', 'torque');
+    figure(1);
+    plot(torque);
+    title('Cogging torque');
+    xlabel('rotation [^\circ]');
+    ylabel('cogging torque [Nm]');
+    print -dpdf 'clogging_torque';
+    close all;
+endif
+
+mi_clearselected();
+for i = res_rot:res_rot:(360 * 3 / stat_nof_slots)
+%for i = 1
+    for phi = res_el:res_el:(360)
+        il1 = current * sin((phi      ) * pi / 180);
+        il2 = current * sin((phi + 120) * pi / 180);
+        il3 = current * sin((phi - 120) * pi / 180);
+        is(phi / res_el, 1) = il1;
+        is(phi / res_el, 2) = il2;
+        is(phi / res_el, 3) = il3;
+        is(phi / res_el, 4) = phi;
+        mi_setcurrent('L1+',  il1);
+        mi_setcurrent('L1-', -il1);
+        mi_setcurrent('L2+',  il2);
+        mi_setcurrent('L2-', -il2);
+        mi_setcurrent('L3+',  il3);
+        mi_setcurrent('L3-', -il3);
+
+        name = strcat('bldc_r', num2str(i - res_rot), '_i', num2str(phi - res_el), '_torque');
+        mi_saveas(strcat(name, '.fem'));
+        if simulate == 1
+            mi_createmesh();
+            mi_analyze(1);
+            mi_loadsolution();
+            mo_zoom(-rot_outer_rad, -rot_outer_rad, rot_outer_rad, rot_outer_rad);
+            mo_showdensityplot(1, 0, 3, 0, 'mag');
+            mo_savebitmap(strcat(name, '.bmp'));
+            mo_seteditmode('area');
+            mo_clearblock();
+            mo_groupselectblock(group_stator);
+            torque(i / res_rot, phi / res_el) = mo_blockintegral(22);
+            mo_close();
+        endif
+        loops += 1;
+    endfor
+    if debug == 1
+        figure(2);
+        plot(is(:,1:3));
+        title('Sine current in windings L_1, L_2, L_3');
+        xlabel('\phi [^\circ]');
+        ylabel('I_{L_x} [A]');
+        legend('I_{L_1}', 'I_{L_2}', 'I_{L_3}');
+        print -dpdf 'phase_current';
+        close all;
+    endif
+
+    mi_selectgroup(group_rotor);
+    mi_moverotate(0, 0, res_rot);
 endfor
-%figure(1);
-%plot(is(:,1:3));
-%title('Sine current in windings L_1, L_2, L_3');
-%xlabel('\phi [^\circ]');
-%ylabel('I_{L_x} [A]');
-%legend('I_{L_1}', 'I_{L_2}', 'I_{L_3}');
+mi_selectgroup(group_rotor);
+mi_moverotate(0, 0, -(360 * 3 / stat_nof_slots));
+if simulate == 1
+    save('torque.mat', 'torque');
+    figure(1);
+    plot3(torque);
+    title('Torque');
+    xlabel('rotation [^\circ]');
+    ylabel('phase angle [^\circ]');
+    zlabel('torque [Nm]');
+    print -dpdf 'clogging_torque'
+    close all;
+endif
+loops
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % close FEMM

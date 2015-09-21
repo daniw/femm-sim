@@ -2,6 +2,15 @@
 *.fem
 *.FEM
 *.ans
+*.edge
+*.ele
+*.node
+*.pbc
+*.poly
+
+# output files
+*.bmp
+*.pdf
 
 # temporary vim files
 *.swp
