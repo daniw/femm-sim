@@ -59,7 +59,7 @@ current = 5;
 
 % Resolution for simulation iterations
 res_clogg = 1;
-res_rot = 2;
+res_rot = 1;
 res_el  = 10;
 
 % Groups for stator and rotor
@@ -104,6 +104,13 @@ rot_ring_inner_rad = sqrt((rot_inner_rad + rot_mag_thick)^2 + (rot_mag_width / 2
 % position of next slot
 stat_base_n_x = stat_base_rad * sin((stat_slot_edge_angle + 2 * stat_slot_base_angle) / 180 * pi);
 stat_base_n_y = stat_base_rad * cos((stat_slot_edge_angle + 2 * stat_slot_base_angle) / 180 * pi);
+% Simulation ranges
+clogg_range = res_clogg:res_clogg:(360 * 3 / stat_nof_slots);
+rot_range = res_rot:res_rot:(360 * 3 / stat_nof_slots);
+i_range =  res_el:res_el:360;
+disp(strcat(num2str(length(clogg_range) + length(rot_range) * length(i_range)), ' Simulations'));
+disp(strcat('  ', num2str(length(clogg_range)), ' for Clogging Torque'));
+disp(strcat('  ', num2str(length(rot_range) * length(i_range)), ' for Torque'));
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Open FEMM
@@ -352,9 +359,7 @@ mi_clearselected();
 % Rotate rotor
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 mi_clearselected();
-loops = 0;
-for i = res_clogg:res_clogg:(360 * 3 / stat_nof_slots)
-%for i = 1
+for i = clogg_range
     name = strcat('bldc_r', num2str(i - res_clogg), '_clogg');
     mi_saveas(strcat(name, '.fem'));
     if simulate == 1
@@ -367,20 +372,19 @@ for i = res_clogg:res_clogg:(360 * 3 / stat_nof_slots)
         mo_seteditmode('area');
         mo_clearblock();
         mo_groupselectblock(group_stator);
-        torque(i / res_clogg) = mo_blockintegral(22);
+        clogg_torque(i / res_clogg) = mo_blockintegral(22);
         mo_close();
     endif
-    loops += 1;
     mi_selectgroup(group_rotor);
     mi_moverotate(0, 0, res_clogg);
 endfor
 mi_selectgroup(group_rotor);
 mi_moverotate(0, 0, -(360 * 3 / stat_nof_slots));
 if simulate == 1
-    save('bldc_clogging_torque.mat', 'torque');
+    save('bldc_clogging_torque.mat', 'clogg_torque');
     figure(1);
-    plot(torque);
-    title('Cogging torque');
+    plot(clogg_range, clogg_torque);
+    title('Clogging torque');
     xlabel('rotation [^\circ]');
     ylabel('cogging torque [Nm]');
     print -dpdf 'bldc_clogging_torque';
@@ -388,9 +392,8 @@ if simulate == 1
 endif
 
 mi_clearselected();
-for i = res_rot:res_rot:(360 * 3 / stat_nof_slots)
-%for i = 1
-    for phi = res_el:res_el:(360)
+for i = rot_range
+    for phi = i_range
         il1 = current * sin((phi      ) * pi / 180);
         il2 = current * sin((phi + 120) * pi / 180);
         il3 = current * sin((phi - 120) * pi / 180);
@@ -420,7 +423,6 @@ for i = res_rot:res_rot:(360 * 3 / stat_nof_slots)
             torque(i / res_rot, phi / res_el) = mo_blockintegral(22);
             mo_close();
         endif
-        loops += 1;
     endfor
     if debug == 1
         figure(2);
@@ -441,16 +443,14 @@ mi_moverotate(0, 0, -(360 * 3 / stat_nof_slots));
 if simulate == 1
     save('bldc_torque.mat', 'torque');
     figure(1);
-    mesh(torque);
+    mesh(i_range, rot_range, torque);
     title('Torque');
-    xlabel('rotation [^\circ]');
-    ylabel('phase angle [^\circ]');
+    xlabel('phase angle [^\circ]');
+    ylabel('rotation [^\circ]');
     zlabel('torque [Nm]');
     print -dpdf 'bldc_torque'
     close all;
 endif
-loops
-
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % close FEMM

@@ -10,6 +10,8 @@
 
 # output files
 *.bmp
+*.log
+*.mat
 *.pdf
 
 # temporary vim files
