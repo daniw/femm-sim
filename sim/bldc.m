@@ -58,7 +58,7 @@ mat_wind    = '1mm';
 current = 5;
 
 % Resolution for simulation iterations
-res_clogg = 1;
+res_cogg = 1;
 res_rot = 1;
 res_el  = 10;
 
@@ -105,11 +105,11 @@ rot_ring_inner_rad = sqrt((rot_inner_rad + rot_mag_thick)^2 + (rot_mag_width / 2
 stat_base_n_x = stat_base_rad * sin((stat_slot_edge_angle + 2 * stat_slot_base_angle) / 180 * pi);
 stat_base_n_y = stat_base_rad * cos((stat_slot_edge_angle + 2 * stat_slot_base_angle) / 180 * pi);
 % Simulation ranges
-clogg_range = res_clogg:res_clogg:(360 * 3 / stat_nof_slots);
+cogg_range = res_cogg:res_cogg:(360 * 3 / stat_nof_slots);
 rot_range = res_rot:res_rot:(360 * 3 / stat_nof_slots);
 i_range =  res_el:res_el:360;
-disp(strcat(num2str(length(clogg_range) + length(rot_range) * length(i_range)), ' Simulations'));
-disp(strcat('  ', num2str(length(clogg_range)), ' for Clogging Torque'));
+disp(strcat(num2str(length(cogg_range) + length(rot_range) * length(i_range)), ' Simulations'));
+disp(strcat('  ', num2str(length(cogg_range)), ' for Cogging Torque'));
 disp(strcat('  ', num2str(length(rot_range) * length(i_range)), ' for Torque'));
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -359,8 +359,8 @@ mi_clearselected();
 % Rotate rotor
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 mi_clearselected();
-for i = clogg_range
-    name = strcat('bldc_r', num2str(i - res_clogg), '_clogg');
+for i = cogg_range
+    name = strcat('bldc_r', num2str(i - res_cogg), '_cogg');
     mi_saveas(strcat(name, '.fem'));
     if simulate == 1
         mi_createmesh();
@@ -372,22 +372,22 @@ for i = clogg_range
         mo_seteditmode('area');
         mo_clearblock();
         mo_groupselectblock(group_stator);
-        clogg_torque(i / res_clogg) = mo_blockintegral(22);
+        cogg_torque(i / res_cogg) = mo_blockintegral(22);
         mo_close();
     endif
     mi_selectgroup(group_rotor);
-    mi_moverotate(0, 0, res_clogg);
+    mi_moverotate(0, 0, res_cogg);
 endfor
 mi_selectgroup(group_rotor);
 mi_moverotate(0, 0, -(360 * 3 / stat_nof_slots));
 if simulate == 1
-    save('bldc_clogging_torque.mat', 'clogg_torque');
+    save('bldc_cogging_torque.mat', 'cogg_torque');
     figure(1);
-    plot(clogg_range, clogg_torque);
-    title('Clogging torque');
+    plot(cogg_range, cogg_torque);
+    title('Cogging torque');
     xlabel('rotation [^\circ]');
     ylabel('cogging torque [Nm]');
-    print -dpdf 'bldc_clogging_torque';
+    print -dpdf 'bldc_cogging_torque';
     close all;
 endif
 
