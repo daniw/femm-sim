@@ -1,2 +1,2 @@
-# bldc-motor
-Development of a BLDC motor
+# femm-sim
+Some Simulations using femm with octavefemm
