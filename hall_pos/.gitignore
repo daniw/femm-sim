@@ -1,0 +1,19 @@
+# FEMM files
+*.fem
+*.FEM
+*.ans
+*.edge
+*.ele
+*.node
+*.pbc
+*.poly
+
+# output files
+*.bmp
+*.log
+*.mat
+*.pdf
+*.txt
+
+# temporary vim files
+*.swp
