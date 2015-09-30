@@ -33,7 +33,9 @@ group_air = 3;
 
 % Simulation setup
 res = 0.1;
-dist_max = 2;
+dist_max = 20;
+automesh = 0;
+meshsize = 0.5;
 
 %% Calculate needed variables
 mag_shape = [0 0; mag_x 0; mag_x mag_y; 0 mag_y];
@@ -98,20 +100,20 @@ mi_clearselected();
 % Boundary around magnets
 % -----------------------
 mi_zoomnatural();
-mi_drawarc(mag_length / 2,  mag_length * 10, mag_length / 2, -mag_length * 10, 180, 1);
-mi_drawarc(mag_length / 2, -mag_length * 10, mag_length / 2,  mag_length * 10, 180, 1);
+mi_drawarc(mag_length / 2,  mag_length * 2, mag_length / 2, -mag_length * 2, 180, 1);
+mi_drawarc(mag_length / 2, -mag_length * 2, mag_length / 2,  mag_length * 2, 180, 1);
 
 % Block labels
 % ------------
 % Air
 mi_addblocklabel(-1, 0);
 mi_selectlabel(-1, 0);
-mi_setblockprop(mat_air, 1, 0, '<none>', 0, group_air, 0)
+mi_setblockprop(mat_air, automesh, meshsize, '<none>', 0, group_air, 0)
 mi_clearselected();
 % Iron
 mi_addblocklabel(mag_length / 2, -iron_thick / 2);
 mi_selectlabel(mag_length / 2, -iron_thick / 2);
-mi_setblockprop(mat_iron, 1, 0, '<none>', 0, group_iron, 0)
+mi_setblockprop(mat_iron, automesh, meshsize, '<none>', 0, group_iron, 0)
 mi_clearselected();
 % Magnets
 mi_addblocklabel(mag_x / 2, mag_y / 2);
@@ -126,7 +128,7 @@ for i = 0:(nof_mag - 1)
     else
         dir = 270;
     endif
-    mi_setblockprop(mat_magnet, 1, 0, '<none>', dir, group_magnet, 0);
+    mi_setblockprop(mat_magnet, automesh, meshsize, '<none>', dir, group_magnet, 0);
     mi_clearselected();
 endfor
 
@@ -152,11 +154,11 @@ if simulate == 1
         mo_addcontour(-10, mag_y + dist);
         mo_addcontour(mag_length + 10, mag_y + dist);
         % B
-        mo_makeplot(2, 1000, strcat(name_out, '_Bn.txt'), 1);
-        mo_makeplot(3, 1000, strcat(name_out, '_Bt.txt'), 1);
+        mo_makeplot(2, 10000, strcat(name_out, '_Bn.txt'), 1);
+        mo_makeplot(3, 10000, strcat(name_out, '_Bt.txt'), 1);
         % H
-        mo_makeplot(5, 1000, strcat(name_out, '_Hn.txt'), 1);
-        mo_makeplot(6, 1000, strcat(name_out, '_Ht.txt'), 1);
+        mo_makeplot(5, 10000, strcat(name_out, '_Hn.txt'), 1);
+        mo_makeplot(6, 10000, strcat(name_out, '_Ht.txt'), 1);
         mo_clearcontour();
         % import results
         tmp = load(strcat(name_out, '_Bn.txt'));
